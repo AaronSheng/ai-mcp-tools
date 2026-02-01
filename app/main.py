@@ -7,7 +7,7 @@ MCP 服务器入口文件，提供 Model Context Protocol 协议支持。
 2. sse - 通过 HTTP Server-Sent Events 提供远程访问
 3. streamable-http - HTTP 流式传输（推荐）
 
-注意：HTTP RESTful API 已移至 app/adapter/api 目录，需要单独启动。
+注意：HTTP RESTful API 已移至 app/api 目录，需要单独启动。
 """
 
 import sys
@@ -49,6 +49,7 @@ def main():
         # 导入所有 MCP 工具确保工具被注册
         from app.mcp import mcp
         import app.mcp.query_supplier_order
+        import app.mcp.get_current_time
         from app.common.config import settings
         from app.common.mcp_wrapper import configure_mcp_base_url, get_sse_endpoint_url
 
@@ -85,60 +86,61 @@ def main():
             logger.info("Note: Streamable HTTP uses a single HTTP connection with streaming")
 
             # 创建 MCP 的 HTTP 应用
-            app = mcp.http_app(transport="streamable-http")
+            # app = mcp.http_app(transport="streamable-http")
+            mcp.run(transport="streamable-http", host=host, port=port)
 
-            # 挂载额外的 HTTP API 路由
-            try:
-                from fastapi import FastAPI
-                from app.api import api_router
-
-                # 创建 FastAPI 子应用
-                api_app = FastAPI(
-                    title=f"{settings.app.app_name} - API",
-                    version=settings.app.app_version
-                )
-                api_app.include_router(api_router)
-
-                # 添加健康检查（直接在主应用上）
-                from starlette.responses import JSONResponse as StarletteJSONResponse
-                from starlette.requests import Request
-
-                async def health_check(request: Request):
-                    return StarletteJSONResponse({
-                        "status": "ok",
-                        "service": settings.app.app_name,
-                        "version": settings.app.app_version,
-                        "mode": "hybrid (MCP + HTTP)"
-                    })
-
-                app.add_route("/health", health_check, methods=["GET"])
-
-                # 挂载 FastAPI 应用（使用 /api）
-                app.mount("/api", api_app)
-
-                logger.info("✅ HTTP API routes registered successfully")
-                logger.info(f"  - Health Check: http://{host}:{port}/health")
-
-            except Exception as e:
-                logger.error(f"Failed to register HTTP routes: {e}", exc_info=True)
-                logger.warning("Starting MCP server without HTTP API routes")
-
-            # 使用 uvicorn 启动应用
-            import uvicorn
-            import asyncio
-
-            # 配置 uvicorn，禁用 uvloop 以兼容 PyCharm 运行环境
-            config = uvicorn.Config(
-                app=app,
-                host=host,
-                port=port,
-                log_level="info",
-                loop="none"  # 禁用自动选择事件循环
-            )
-            server = uvicorn.Server(config)
-
-            # 使用标准 asyncio 运行
-            asyncio.run(server.serve())
+            # # 挂载额外的 HTTP API 路由
+            # try:
+            #     from fastapi import FastAPI
+            #     from app.api import api_router
+            #
+            #     # 创建 FastAPI 子应用
+            #     api_app = FastAPI(
+            #         title=f"{settings.app.app_name} - API",
+            #         version=settings.app.app_version
+            #     )
+            #     api_app.include_router(api_router)
+            #
+            #     # 添加健康检查（直接在主应用上）
+            #     from starlette.responses import JSONResponse as StarletteJSONResponse
+            #     from starlette.requests import Request
+            #
+            #     async def health_check(request: Request):
+            #         return StarletteJSONResponse({
+            #             "status": "ok",
+            #             "service": settings.app.app_name,
+            #             "version": settings.app.app_version,
+            #             "mode": "hybrid (MCP + HTTP)"
+            #         })
+            #
+            #     app.add_route("/health", health_check, methods=["GET"])
+            #
+            #     # 挂载 FastAPI 应用（使用 /api）
+            #     app.mount("/api", api_app)
+            #
+            #     logger.info("✅ HTTP API routes registered successfully")
+            #     logger.info(f"  - Health Check: http://{host}:{port}/health")
+            #
+            # except Exception as e:
+            #     logger.error(f"Failed to register HTTP routes: {e}", exc_info=True)
+            #     logger.warning("Starting MCP server without HTTP API routes")
+            #
+            # # 使用 uvicorn 启动应用
+            # import uvicorn
+            # import asyncio
+            #
+            # # 配置 uvicorn，禁用 uvloop 以兼容 PyCharm 运行环境
+            # config = uvicorn.Config(
+            #     app=app,
+            #     host=host,
+            #     port=port,
+            #     log_level="info",
+            #     loop="none"  # 禁用自动选择事件循环
+            # )
+            # server = uvicorn.Server(config)
+            #
+            # # 使用标准 asyncio 运行
+            # asyncio.run(server.serve())
         else:
             logger.info("Starting MCP stdio server")
             logger.info("Use this mode with Claude Desktop or other MCP clients")

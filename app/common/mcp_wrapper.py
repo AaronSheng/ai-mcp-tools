@@ -18,10 +18,8 @@ def configure_mcp_base_url(mcp_instance, base_url: Optional[str] = None):
 
     Args:
         mcp_instance: FastMCP 实例
-        base_url: 完整的 base URL（如 http://scaip.biz.dotfashion.cn/mcp）
+        base_url: 完整的 base URL
 
-    Examples:
-        configure_mcp_base_url(mcp, "http://scaip.biz.dotfashion.cn/mcp")
     """
     if not base_url:
         logger.info("No base URL configured, using default")

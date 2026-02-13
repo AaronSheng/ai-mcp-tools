@@ -50,6 +50,8 @@ def main():
         from app.mcp import mcp
         import app.mcp.query_supplier_order
         import app.mcp.get_current_time
+        import app.mcp.add_apple_notes
+        import app.mcp.add_apple_calendar_event
         from app.common.config import settings
         from app.common.mcp_wrapper import configure_mcp_base_url, get_sse_endpoint_url
 

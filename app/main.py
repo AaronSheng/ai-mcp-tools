@@ -48,10 +48,10 @@ def main():
     try:
         # 导入所有 MCP 工具确保工具被注册
         from app.mcp import mcp
-        import app.mcp.query_supplier_order
-        import app.mcp.get_current_time
         import app.mcp.add_apple_notes
         import app.mcp.add_apple_calendar_event
+        import app.mcp.search_knowledge_file
+        import app.mcp.search_knowledge_content
         from app.common.config import settings
         from app.common.mcp_wrapper import configure_mcp_base_url, get_sse_endpoint_url
 
